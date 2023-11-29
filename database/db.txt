@@ -1,0 +1,93 @@
+ALTER TABLE `user` ADD `BranchID` INT NULL DEFAULT NULL AFTER `UserID`;
+
+ALTER TABLE `user_role` ADD `BranchID` INT NULL DEFAULT NULL AFTER `RoleId`;
+
+UPDATE `user_role` SET `BranchID`='1' Where 1
+
+
+Export ALL tables from HRM exclude the following Tables
+company
+documents
+document_category
+migrations
+role
+user
+user_role
+
+rest of the tables sql file are located in project database folder.
+after that move HRM role table data into Accounting.role
+
+
+-------------------------------
+
+date: 22-7-2023
+
+ALTER TABLE `migrations` CHANGE `id` `id` INT UNSIGNED NOT NULL AUTO_INCREMENT;
+
+
+php artisan migrate --path=database/migrations/2023_07_22_073017_create_jobs_table.php
+
+
+-----------------------------------
+date: 24-7-2023
+
+php artisan migrate --path=database/migrations/2023_07_24_140422_create_user_jobs_table.php
+
+php artisan migrate --path=database/migrations/2023_07_24_144912_add_created_by_to_jobs.php
+
+php artisan migrate --path=database/migrations/2023_07_24_145348_create_notifications_table.php
+
+--------------------------------
+
+
+date: 28-7-2023
+
+ALTER TABLE `user` DROP `BranchID`;
+
+
+
+DROP VIEW IF EXISTS v_users;
+
+-- Recreate the view without the BranchID column
+CREATE ALGORITHM = UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_users` AS
+SELECT 
+    `ext_pms`.`user`.`UserID` AS `UserID`,
+    `ext_pms`.`user`.`FullName` AS `FullName`,
+    `ext_pms`.`user`.`Email` AS `Email`,
+    `ext_pms`.`user`.`Password` AS `Password`,
+    `ext_pms`.`user`.`UserType` AS `UserType`,
+    `ext_pms`.`user`.`eDate` AS `eDate`,
+    `ext_pms`.`user`.`Active` AS `Active`
+FROM
+    `ext_pms`.`user`;
+
+
+----------------------------------------
+
+
+29-07-2023
+CREATE TABLE `extbooks_elexlift_pms`.`user_job_reply` (`ReplyID` INT NOT NULL AUTO_INCREMENT , `UserReply` TEXT NULL DEFAULT NULL , `UserReplyStatus` VARCHAR(255) NULL DEFAULT NULL , `CreatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP , PRIMARY KEY (`ReplyID`)) ENGINE = MyISAM;
+
+ALTER TABLE `user_job_reply` ADD `JobID` INT NULL DEFAULT NULL AFTER `ReplyID`, ADD `UserID` INT NULL DEFAULT NULL AFTER `JobID`;
+
+
+ALTER TABLE `jobs` ADD `JobStatus` VARCHAR(255) NULL DEFAULT NULL AFTER `status`;
+
+ALTER TABLE `user_job_reply` CHANGE `UserReplyStatus` `UserJobStatus` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL;
+================================================
+01-08-2023
+1) import sticker.sql file in the database to create sticker Table
+
+2) Create View.
+
+Create Or Replace View `v_sticker` AS 
+select sum(`sticker`.`qty`) AS `qty`,
+`labels`.`OrderNumber` AS `OrderNumber`,
+`labels`.`ClientName` AS `ClientName`,
+`labels`.`Content` AS `Content`,
+`labels`.`CustomerOrderDate` AS `CustomerOrderDate`,
+`labels`.`UnitNumber` AS `UnitNumber`,
+`labels`.`Description` AS `Description`,
+`labels`.`LabelDeails` AS `LabelDeails` from (`sticker` join `labels` on((`sticker`.`itemid` = `labels`.`OrderNumber`))) group by `sticker`.`itemid`,
+`labels`.`LabelID`,
+`labels`.`OrderNumber`
